@@ -1,13 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const ANTHROPIC_MODEL = "claude-sonnet-4-5";
-const API_KEY = import.meta.env.VITE_ANTHROPIC_KEY;
-const ANTHROPIC_HEADERS = {
-  "Content-Type": "application/json",
-  "x-api-key": API_KEY,
-  "anthropic-version": "2023-06-01",
-  "anthropic-dangerous-direct-browser-iab": "true",
-};
+const IS_LOCAL = typeof window !== "undefined" && window.location.hostname === "localhost";
+const API_BASE = IS_LOCAL ? "http://localhost:3001" : "";
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const C = {
@@ -282,7 +277,7 @@ export default function PolymarketDashboard() {
   const fetchMarches = useCallback(async () => {
     try {
       setChargementMarches(true);
-      const res = await fetch("http://localhost:3001/api/markets");
+      const res = await fetch(`${API_BASE}/api/markets`);
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
       const formatted = data
@@ -357,7 +352,7 @@ FORMAT OBLIGATOIRE :
 Raisonnement : ...
 Risques : ...`;
 
-      const res = await fetch("http://localhost:3001/api/anthropic", {
+      const res = await fetch(`${API_BASE}/api/anthropic`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 500, messages: [{ role: "user", content: prompt }] })
@@ -395,7 +390,7 @@ Identifie les 3 MEILLEURES opportunités. Pour chacune :
 
 Réponds en français, sois direct et actionnable.`;
 
-      const res = await fetch("http://localhost:3001/api/anthropic", {
+      const res = await fetch(`${API_BASE}/api/anthropic`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
@@ -427,7 +422,7 @@ ${actus.slice(0, 5).map(n => `- [${n.category}] ${n.title}`).join("\n")}
 
 Date/heure : ${now.toLocaleString("fr-FR")}`;
 
-      const res = await fetch("http://localhost:3001/api/anthropic", {
+      const res = await fetch(`${API_BASE}/api/anthropic`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 800, system, messages: nouvelHisto.map(m => ({ role: m.role, content: m.content })) })
